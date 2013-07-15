@@ -14,4 +14,27 @@
 
 	<artifactId>fias-downloader</artifactId>
 	<name>FIAS Downloader</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jvnet.jax-ws-commons</groupId>
+				<artifactId>jaxws-maven-plugin</artifactId>
+				<version>2.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>wsimport</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<packageName>com.peshchuk.fias.service</packageName>
+					<wsdlUrls>
+						<wsdlUrl>http://fias.nalog.ru/WebServices/Public/DownloadService.asmx?WSDL</wsdlUrl>
+					</wsdlUrls>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
