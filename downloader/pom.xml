@@ -29,10 +29,11 @@
 					</execution>
 				</executions>
 				<configuration>
-					<packageName>com.peshchuk.fias.service</packageName>
 					<wsdlUrls>
 						<wsdlUrl>http://fias.nalog.ru/WebServices/Public/DownloadService.asmx?WSDL</wsdlUrl>
 					</wsdlUrls>
+					<packageName>com.peshchuk.fias.service</packageName>
+					<extension>true</extension>
 				</configuration>
 			</plugin>
 		</plugins>
