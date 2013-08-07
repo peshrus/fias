@@ -12,6 +12,13 @@
 		<relativePath>../parent-common</relativePath>
 	</parent>
 
+	<dependencies>
+		<dependency>
+			<groupId>com.github.beothorn</groupId>
+			<artifactId>junrar</artifactId>
+		</dependency>
+	</dependencies>
+
 	<artifactId>fias-rar-extractor</artifactId>
 	<name>FIAS RAR Extractor</name>
 </project>

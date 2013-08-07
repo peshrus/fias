@@ -20,11 +20,20 @@
 		<version.slf4j>1.7.5</version.slf4j>
 		<version.junit>4.11</version.junit>
 
+		<version.junrar>0.6</version.junrar>
+
 		<version.plugin.compiler>3.1</version.plugin.compiler>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>com.github.beothorn</groupId>
+				<artifactId>junrar</artifactId>
+				<version>${version.junrar}</version>
+			</dependency>
+
+			<!-- Logging dependencies -->
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>

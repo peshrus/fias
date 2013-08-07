@@ -5,7 +5,6 @@ import com.peshchuk.fias.service.DownloadService;
 import com.peshchuk.fias.service.DownloadServiceSoap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,12 +34,15 @@ public class FiasRarSoapDownloader {
 	}
 
 	public void download() throws IOException {
-		MDC.put("context", "fias_xml.rar");
+		LOGGER.info("Getting FIAS RAR file URL");
 		final String fiasRarUrlStr = getFiasRarUrl();
 
 		LOGGER.info("Start Downloading: {} (to: {})", fiasRarUrlStr, fileToSave);
-		doDownload(fiasRarUrlStr);
-		LOGGER.info("Finish Downloading: {}", fileToSave);
+		try {
+			doDownload(fiasRarUrlStr);
+		} finally {
+			LOGGER.info("Finish Downloading: {}", fileToSave);
+		}
 	}
 
 	private String getFiasRarUrl() {
