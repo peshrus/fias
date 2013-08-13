@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
+ * This class demonstrates my refactoring skills.
+ * Check out original code: <a href="https://github.com/edmund-wagner/junrar/blob/master/testutil/src/main/java/com/github/junrar/testutil/ExtractArchive.java">ExtractArchive.java</a>
+ *
  * @author Ruslan Peshchuk (peshrus@gmail.com)
  */
 public class FiasRarExtractor {
@@ -25,7 +28,7 @@ public class FiasRarExtractor {
 		this.fiasUnrarFolder = fiasUnrarFolder;
 	}
 
-	public void extract() throws IOException {
+	public void extract() throws IOException, RarException {
 		LOGGER.info("Start Extraction: {} (to: {})", fiasRarFile, fiasUnrarFolder);
 		try {
 			doExtract(fiasRarFile, fiasUnrarFolder);
@@ -34,115 +37,60 @@ public class FiasRarExtractor {
 		}
 	}
 
-	public static void doExtract(File rar, File destination) {
-		Archive arch = null;
-		try {
-			arch = new Archive(rar);
-		} catch (RarException | IOException e) {
-			LOGGER.error(e.toString(), e);
-		}
-		if (arch != null) {
-			if (arch.isEncrypted()) {
-				LOGGER.warn("archive is encrypted cannot extreact");
-				return;
-			}
-			FileHeader fh = null;
-			while (true) {
-				fh = arch.nextFileHeader();
-				if (fh == null) {
-					break;
-				}
-				if (fh.isEncrypted()) {
-					LOGGER.warn("file is encrypted cannot extract: {}", fh.getFileNameString());
-					continue;
-				}
-				LOGGER.info("extracting: {}", fh.getFileNameString());
-				try {
-					if (fh.isDirectory()) {
-						createDirectory(fh, destination);
-					} else {
-						File f = createFile(fh, destination);
-						OutputStream stream = new FileOutputStream(f);
-						arch.extractFile(fh, stream);
-						stream.close();
+	public static void doExtract(File rar, File destination) throws IOException, RarException {
+		final Archive archive = new Archive(rar);
+
+		if (!archive.isEncrypted()) {
+			FileHeader fileHeader;
+			while ((fileHeader = archive.nextFileHeader()) != null) {
+				if (!fileHeader.isEncrypted()) {
+					LOGGER.info("Extracting: {}", fileHeader.getFileNameString());
+					final File file = create(destination, fileHeader);
+					if (fileHeader.isFileHeader() && file != null) {
+						try (final OutputStream stream = new FileOutputStream(file)) {
+							archive.extractFile(fileHeader, stream);
+							stream.close();
+						}
+					} else if (fileHeader.isFileHeader()) {
+						LOGGER.error("File has not bee created: {}", fileHeader.getFileNameString());
 					}
-				} catch (IOException e) {
-					LOGGER.error("error extracting the file", e);
-				} catch (RarException e) {
-					LOGGER.error("error extraction the file", e);
+				} else {
+					LOGGER.warn("File is encrypted cannot extract: {}", fileHeader.getFileNameString());
 				}
 			}
-		}
-	}
-
-	private static File createFile(FileHeader fh, File destination) {
-		File f = null;
-		String name = null;
-		if (fh.isFileHeader() && fh.isUnicode()) {
-			name = fh.getFileNameW();
 		} else {
-			name = fh.getFileNameString();
+			LOGGER.error("Archive is encrypted cannot extract: {}", rar);
 		}
-		f = new File(destination, name);
-		if (!f.exists()) {
-			try {
-				f = makeFile(destination, name);
-			} catch (IOException e) {
-				LOGGER.error("error creating the new file: {}", f.getName(), e);
-			}
-		}
-		return f;
 	}
 
-	private static File makeFile(File destination, String name)
-			throws IOException {
-		String[] dirs = name.split("\\\\");
-		if (dirs == null) {
-			return null;
-		}
-		String path = "";
-		int size = dirs.length;
-		if (size == 1) {
-			return new File(destination, name);
-		} else if (size > 1) {
-			for (int i = 0; i < dirs.length - 1; i++) {
-				path = path + File.separator + dirs[i];
-				new File(destination, path).mkdir();
-			}
-			path = path + File.separator + dirs[dirs.length - 1];
-			File f = new File(destination, path);
-			f.createNewFile();
-			return f;
+	private static File create(File destination, FileHeader fileHeader) throws IOException {
+		final String name;
+		if (fileHeader.isUnicode()) {
+			name = fileHeader.getFileNameW();
 		} else {
-			return null;
+			name = fileHeader.getFileNameString();
 		}
+
+		File file = new File(destination, name);
+		if (!file.exists()) {
+			file = make(destination, name, fileHeader.isFileHeader());
+		}
+
+		return file;
 	}
 
-	private static void createDirectory(FileHeader fh, File destination) {
-		File f = null;
-		if (fh.isDirectory() && fh.isUnicode()) {
-			f = new File(destination, fh.getFileNameW());
-			if (!f.exists()) {
-				makeDirectory(destination, fh.getFileNameW());
-			}
-		} else if (fh.isDirectory() && !fh.isUnicode()) {
-			f = new File(destination, fh.getFileNameString());
-			if (!f.exists()) {
-				makeDirectory(destination, fh.getFileNameString());
-			}
-		}
-	}
-
-	private static void makeDirectory(File destination, String fileName) {
-		String[] dirs = fileName.split("\\\\");
-		if (dirs == null) {
-			return;
-		}
-		String path = "";
-		for (String dir : dirs) {
-			path = path + File.separator + dir;
-			new File(destination, path).mkdir();
+	private static File make(File destination, String name, boolean isFile) throws IOException {
+		if (!destination.exists() && !destination.mkdirs()) {
+			throw new RuntimeException("Path has not been created: " + destination);
 		}
 
+		final File file = new File(destination, name);
+		if (isFile && !file.createNewFile()) {
+			throw new RuntimeException("File has not been created: " + file);
+		} else if (!isFile && !file.mkdir()) {
+			throw new RuntimeException("Directory has not been created: " + file);
+		}
+
+		return file;
 	}
 }
