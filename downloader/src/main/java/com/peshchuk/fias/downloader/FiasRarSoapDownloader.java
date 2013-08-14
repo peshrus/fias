@@ -1,5 +1,6 @@
 package com.peshchuk.fias.downloader;
 
+import com.peshchuk.fias.downloader.struct.FiasInfo;
 import com.peshchuk.fias.service.DownloadFileInfo;
 import com.peshchuk.fias.service.DownloadService;
 import com.peshchuk.fias.service.DownloadServiceSoap;
@@ -34,24 +35,30 @@ public class FiasRarSoapDownloader {
 	}
 
 	public void download() throws IOException {
-		LOGGER.info("Getting FIAS RAR file URL");
-		final String fiasRarUrlStr = getFiasRarUrl();
+		LOGGER.info("Getting FIAS information");
+		final FiasInfo fiasInfo = getFiasInfo();
 
-		LOGGER.info("Start Downloading: {} (to: {})", fiasRarUrlStr, fileToSave);
+		LOGGER.info("Start Downloading: {} (to: {})", fiasInfo, fileToSave);
 		try {
-			doDownload(fiasRarUrlStr);
+			doDownload(fiasInfo.getFiasRarUrl());
 		} finally {
 			LOGGER.info("Finish Downloading: {}", fileToSave);
 		}
+
+		LOGGER.info("Saving information about downloaded file");
+		logDownloadHistory(fiasInfo.getVersion(), fiasInfo.getVersionDescription());
 	}
 
-	private String getFiasRarUrl() {
+	private FiasInfo getFiasInfo() {
 		final DownloadService downloadService = new DownloadService();
 		final DownloadServiceSoap downloadServiceSoap12 = downloadService.getDownloadServiceSoap12();
 		final DownloadFileInfo lastDownloadFileInfo = downloadServiceSoap12.getLastDownloadFileInfo();
-		final String result = downloadDelta ?
+		final String fiasRarUrl = downloadDelta ?
 				lastDownloadFileInfo.getFiasDeltaXmlUrl() :
 				lastDownloadFileInfo.getFiasCompleteXmlUrl();
+		final FiasInfo result = new FiasInfo(lastDownloadFileInfo.getVersionId(),
+		                                     lastDownloadFileInfo.getTextVersion(),
+		                                     fiasRarUrl);
 
 		return result;
 	}
@@ -70,5 +77,9 @@ public class FiasRarSoapDownloader {
 				}
 			}
 		}
+	}
+
+	private void logDownloadHistory(int version, String versionDescription) {
+		// TODO implement
 	}
 }
