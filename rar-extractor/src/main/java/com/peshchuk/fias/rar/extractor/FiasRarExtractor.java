@@ -55,7 +55,7 @@ public class FiasRarExtractor {
 						LOGGER.error("File has not bee created: {}", fileHeader.getFileNameString());
 					}
 				} else {
-					LOGGER.warn("File is encrypted cannot extract: {}", fileHeader.getFileNameString());
+					LOGGER.error("File is encrypted cannot extract: {}", fileHeader.getFileNameString());
 				}
 			}
 		} else {
@@ -90,6 +90,7 @@ public class FiasRarExtractor {
 		} else if (!isFile && !file.mkdir()) {
 			throw new RuntimeException("Directory has not been created: " + file);
 		}
+		LOGGER.info("Created: {}", file);
 
 		return file;
 	}

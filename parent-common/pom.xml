@@ -17,10 +17,10 @@
 
 		<version.java>1.7</version.java>
 
+		<version.junrar>0.6</version.junrar>
+
 		<version.slf4j>1.7.5</version.slf4j>
 		<version.junit>4.11</version.junit>
-
-		<version.junrar>0.6</version.junrar>
 
 		<version.plugin.compiler>3.1</version.plugin.compiler>
 	</properties>
