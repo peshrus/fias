@@ -24,6 +24,7 @@
 
 		<version.plugin.compiler>3.1</version.plugin.compiler>
 		<version.plugin.jaxws>2.3</version.plugin.jaxws>
+		<version.plugin.jaxb2>1.5</version.plugin.jaxb2>
 	</properties>
 
 	<dependencyManagement>
@@ -89,6 +90,11 @@
 					<groupId>org.jvnet.jax-ws-commons</groupId>
 					<artifactId>jaxws-maven-plugin</artifactId>
 					<version>${version.plugin.jaxws}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>jaxb2-maven-plugin</artifactId>
+					<version>${version.plugin.jaxb2}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

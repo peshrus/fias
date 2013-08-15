@@ -14,4 +14,25 @@
 
 	<artifactId>fias-xml-saver</artifactId>
 	<name>FIAS XML Saver</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jaxb2-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>xjc</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<extension>true</extension>
+					<packageName>com.peshchuk.fias.jaxb</packageName>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
