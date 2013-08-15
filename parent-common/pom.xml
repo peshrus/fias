@@ -23,6 +23,7 @@
 		<version.junit>4.11</version.junit>
 
 		<version.plugin.compiler>3.1</version.plugin.compiler>
+		<version.plugin.jaxws>2.3</version.plugin.jaxws>
 	</properties>
 
 	<dependencyManagement>
@@ -83,6 +84,11 @@
 						<source>${version.java}</source>
 						<target>${version.java}</target>
 					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.jvnet.jax-ws-commons</groupId>
+					<artifactId>jaxws-maven-plugin</artifactId>
+					<version>${version.plugin.jaxws}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
