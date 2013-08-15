@@ -44,7 +44,7 @@ public class FiasRarExtractorTest {
 	}
 
 	@Test
-	public void testDownload_Ok() throws IOException, RarException {
+	public void testExtract_Ok() throws IOException, RarException {
 		extractor.extract();
 		assertEquals(13, fiasUnrarFolder.list() != null ? fiasUnrarFolder.list().length : 0);
 	}
