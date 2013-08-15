@@ -49,10 +49,9 @@ public class FiasRarExtractor {
 					if (fileHeader.isFileHeader() && file != null) {
 						try (final OutputStream stream = new FileOutputStream(file)) {
 							archive.extractFile(fileHeader, stream);
-							stream.close();
 						}
 					} else if (fileHeader.isFileHeader()) {
-						LOGGER.error("File has not bee created: {}", fileHeader.getFileNameString());
+						LOGGER.error("File has not been created: {}", fileHeader.getFileNameString());
 					}
 				} else {
 					LOGGER.error("File is encrypted cannot extract: {}", fileHeader.getFileNameString());
