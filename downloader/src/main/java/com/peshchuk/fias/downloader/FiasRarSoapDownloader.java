@@ -66,15 +66,14 @@ public class FiasRarSoapDownloader {
 	private void doDownload(String fiasRarUrlStr) throws IOException {
 		final URL fiasRarUrl = new URL(fiasRarUrlStr);
 		try (final InputStream fiasRarStream = fiasRarUrl.openStream();
-		     final ReadableByteChannel fiasRarStreamChannel = Channels.newChannel(fiasRarStream)) {
-			try (final FileOutputStream fileStream = new FileOutputStream(fileToSave);
-			     final FileChannel fileChannel = fileStream.getChannel()) {
-				long read = 0;
-				long portionRead;
-				while ((portionRead = fileChannel.transferFrom(fiasRarStreamChannel, read, Short.MAX_VALUE)) > 0) {
-					read += portionRead;
-					LOGGER.trace("Downloaded: {} bytes", read);
-				}
+		     final ReadableByteChannel fiasRarStreamChannel = Channels.newChannel(fiasRarStream);
+		     final FileOutputStream fileStream = new FileOutputStream(fileToSave);
+		     final FileChannel fileChannel = fileStream.getChannel()) {
+			long read = 0;
+			long portionRead;
+			while ((portionRead = fileChannel.transferFrom(fiasRarStreamChannel, read, Short.MAX_VALUE)) > 0) {
+				read += portionRead;
+				LOGGER.trace("Downloaded: {} bytes", read);
 			}
 		}
 	}
