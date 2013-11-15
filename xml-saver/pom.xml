@@ -15,6 +15,13 @@
 	<artifactId>fias-xml-saver</artifactId>
 	<name>FIAS XML Saver</name>
 
+	<dependencies>
+		<dependency>
+			<groupId>com.github.beothorn</groupId>
+			<artifactId>junrar</artifactId>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>

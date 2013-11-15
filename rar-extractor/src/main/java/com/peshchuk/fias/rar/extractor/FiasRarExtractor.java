@@ -12,8 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * This class demonstrates my refactoring skills.
- * Check out original code: <a href="https://github.com/edmund-wagner/junrar/blob/master/testutil/src/main/java/com/github/junrar/testutil/ExtractArchive.java">ExtractArchive.java</a>
+ * Check out the original code: <a href="https://github.com/edmund-wagner/junrar/blob/master/testutil/src/main/java/com/github/junrar/testutil/ExtractArchive.java">ExtractArchive.java</a>
  *
  * @author Ruslan Peshchuk (peshrus@gmail.com)
  */
