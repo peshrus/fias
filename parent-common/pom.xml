@@ -25,6 +25,8 @@
 		<version.plugin.compiler>3.1</version.plugin.compiler>
 		<version.plugin.jaxws>2.3</version.plugin.jaxws>
 		<version.plugin.jaxb2>1.5</version.plugin.jaxb2>
+		<version.reflections>0.9.9-RC1</version.reflections>
+		<version.woodstox>4.2.0</version.woodstox>
 	</properties>
 
 	<dependencyManagement>
@@ -33,6 +35,16 @@
 				<groupId>com.github.beothorn</groupId>
 				<artifactId>junrar</artifactId>
 				<version>${version.junrar}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.reflections</groupId>
+				<artifactId>reflections</artifactId>
+				<version>${version.reflections}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.woodstox</groupId>
+				<artifactId>woodstox-core-lgpl</artifactId>
+				<version>${version.woodstox}</version>
 			</dependency>
 
 			<!-- Logging dependencies -->
