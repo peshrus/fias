@@ -184,11 +184,6 @@ COMMENT ON TABLE NORMATIVEDOCUMENT IS 'Сведения по нормативн�
 
 -- Справочные сведения
 
-CREATE TABLE  (
-
-);
-COMMENT ON TABLE  IS '';
-
 CREATE TABLE ADDRESSOBJECTTYPE (
 --Уровень адресного объекта	LEVEL	A	N(10)	О
 --Краткое наименование типа объекта	SCNAME	A	T(0-10)	Н
