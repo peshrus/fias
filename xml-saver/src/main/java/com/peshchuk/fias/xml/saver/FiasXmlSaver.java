@@ -18,10 +18,7 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Ruslan Peshchuk (peshrus@gmail.com)
@@ -35,10 +32,14 @@ public class FiasXmlSaver {
 	private static final String JAXB_CLASSES_PACKAGE = "com.peshchuk.fias.jaxb";
 
 	private final File fiasRarFile;
+	private final int batchSize;
+	private final BatchSaver batchSaver;
 	private final Unmarshaller jaxbUnmarshaller;
 
-	public FiasXmlSaver(File fiasRarFile) throws JAXBException {
+	public FiasXmlSaver(File fiasRarFile, int batchSize, BatchSaver batchSaver) throws JAXBException {
 		this.fiasRarFile = fiasRarFile;
+		this.batchSize = batchSize;
+		this.batchSaver = batchSaver;
 
 		final JAXBContext jaxbContext = JAXBContext.newInstance(JAXB_CLASSES_PACKAGE);
 		jaxbUnmarshaller = jaxbContext.createUnmarshaller();
@@ -64,6 +65,7 @@ public class FiasXmlSaver {
 
 			if (!archive.isEncrypted()) {
 				final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+				final Collection<Object> batch = new ArrayList<>(batchSize);
 				FileHeader fileHeader;
 				while ((fileHeader = archive.nextFileHeader()) != null) {
 					if (!fileHeader.isEncrypted()) {
@@ -73,7 +75,7 @@ public class FiasXmlSaver {
 							try (final InputStream inputStream = archive.getInputStream(fileHeader)) {
 								final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(inputStream);
 								try {
-									saveFile(xmlRootElements, entityClasses, xmlStreamReader);
+									saveFile(xmlRootElements, entityClasses, xmlStreamReader, batch);
 								} finally {
 									xmlStreamReader.close();
 								}
@@ -87,12 +89,21 @@ public class FiasXmlSaver {
 						LOGGER.error("File is encrypted: {}", fileHeader.getFileNameString());
 					}
 				}
+
+				if (batch.size() > 0) {
+					saveBatch(batch);
+				}
 			} else {
 				LOGGER.error("Archive is encrypted: {}", fiasRarFile);
 			}
 		} finally {
 			LOGGER.info("Finish Saving: {}", fiasRarFile);
 		}
+	}
+
+	private void saveBatch(Collection<Object> batch) {
+		batchSaver.save(batch);
+		batch.clear();
 	}
 
 	private Set<Class<?>> getJaxbClasses() {
@@ -102,19 +113,29 @@ public class FiasXmlSaver {
 		return result;
 	}
 
-	private void saveFile(Set<String> xmlRootElements, Map<String, Class<?>> entityClasses, XMLStreamReader xmlStreamReader) throws XMLStreamException, JAXBException {
+	private void saveFile(Set<String> xmlRootElements,
+	                      Map<String, Class<?>> entityClasses,
+	                      XMLStreamReader xmlStreamReader,
+	                      Collection<Object> batch) throws XMLStreamException, JAXBException {
 		do {
 			xmlStreamReader.nextTag();
 		} while (xmlRootElements.contains(xmlStreamReader.getLocalName()));
 
 		do {
 			final Class<?> entityClass = entityClasses.get(xmlStreamReader.getLocalName());
-			saveEntity(xmlStreamReader, entityClass);
+			final Object entity = saveEntity(xmlStreamReader, entityClass);
+			batch.add(entity);
+
+			if (batch.size() == batchSize) {
+				saveBatch(batch);
+			}
 		} while (xmlStreamReader.isStartElement() && xmlStreamReader.hasNext());
 	}
 
-	private <T> void saveEntity(XMLStreamReader xmlStreamReader, Class<T> entityClass) throws JAXBException {
+	private <T> T saveEntity(XMLStreamReader xmlStreamReader, Class<T> entityClass) throws JAXBException {
 		final JAXBElement<T> jaxbElement = jaxbUnmarshaller.unmarshal(xmlStreamReader, entityClass);
-		System.out.println(jaxbElement.getValue());
+		final T result = jaxbElement.getValue();
+
+		return result;
 	}
 }
