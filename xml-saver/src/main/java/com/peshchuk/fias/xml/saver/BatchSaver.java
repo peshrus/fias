@@ -7,5 +7,4 @@ import java.util.Collection;
  */
 public interface BatchSaver {
 	void save(Collection<?> batch) throws Exception;
-	int getSavedCount();
 }

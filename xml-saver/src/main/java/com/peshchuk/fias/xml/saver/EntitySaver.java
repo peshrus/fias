@@ -1,42 +1,35 @@
 package com.peshchuk.fias.xml.saver;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Maps;
 
 /**
  * @author Ruslan Peshchuk (peshrus@gmail.com)
  */
-public class EntitySaver implements AutoCloseable, BatchSaver {
+public class EntitySaver implements AutoCloseable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EntitySaver.class);
-
-	/**
-	 * {@link com.peshchuk.fias.jaxb.AddressObjects.Object#normdoc} is not always specified.
-	 */
-	private static Map<Class<?>, Object> DEFAULT_VALUES = ImmutableMap.<Class<?>, Object>of(String.class, "Нет");
 
 	private final Connection connection;
 	private final boolean supportsBatchUpdates;
 	private final boolean defaultAutoCommit;
 	private final Map<Class<?>, PreparedStatement> preparedStatements;
 	private final Map<Class<?>, Field[]> classFields;
-	private final Map<Field, Boolean> requiredFields = new HashMap<>();
-	private int savedCount = 0;
 
-	public EntitySaver(Connection connection) throws SQLException {
+	public EntitySaver(Connection connection, Set<Class<?>> jaxbClasses) throws SQLException {
 		this.connection = connection;
 
 		this.supportsBatchUpdates = connection.getMetaData().supportsBatchUpdates();
@@ -46,9 +39,16 @@ public class EntitySaver implements AutoCloseable, BatchSaver {
 		LOGGER.info("defaultAutoCommit: {}", defaultAutoCommit);
 		connection.setAutoCommit(false);
 
-		final int jaxbClassesSize = FiasXmlSaver.getJaxbClasses().size();
+		final int jaxbClassesSize = jaxbClasses.size();
 		this.preparedStatements = Maps.newHashMapWithExpectedSize(jaxbClassesSize);
 		this.classFields = Maps.newHashMapWithExpectedSize(jaxbClassesSize);
+
+		for (Class<?> xmlRootClass : jaxbClasses) {
+			for (Class<?> entityClass : xmlRootClass.getClasses()) {
+				final Field[] entityFields = entityClass.getDeclaredFields();
+				classFields.put(entityClass, entityFields);
+			}
+		}
 	}
 
 	public void addBatch(Object entity) throws SQLException, IllegalAccessException {
@@ -66,20 +66,17 @@ public class EntitySaver implements AutoCloseable, BatchSaver {
 		final Class<?> entityClass = entity.getClass();
 
 		if (!preparedStatements.containsKey(entityClass)) {
-			final Field[] entityFields = entityClass.getDeclaredFields();
-			classFields.put(entityClass, entityFields);
+			final Field[] entityFields = classFields.get(entityClass);
 
 			final String[] fieldNames = new String[entityFields.length];
 			final String[] queryParams = new String[entityFields.length];
 			int pos = 0;
 			for (Field entityField : entityFields) {
-				final XmlAttribute annotation = entityField.getAnnotation(XmlAttribute.class);
-
 				entityField.setAccessible(true);
-				requiredFields.put(entityField, annotation.required());
-				fieldNames[pos] = annotation.name();
-				queryParams[pos] = "?";
 
+				final XmlAttribute xmlAttribute = entityField.getAnnotation(XmlAttribute.class);
+				fieldNames[pos] = xmlAttribute.name();
+				queryParams[pos] = "?";
 				++pos;
 			}
 			final String sqlFields = Arrays.toString(fieldNames).replace('[', '(').replace(']', ')');
@@ -93,7 +90,9 @@ public class EntitySaver implements AutoCloseable, BatchSaver {
 		return preparedStatements.get(entityClass);
 	}
 
-	private void setParameters(PreparedStatement preparedStatement, Object entity) throws IllegalAccessException, SQLException {
+	private void setParameters(PreparedStatement preparedStatement, Object entity) throws
+	                                                                               IllegalAccessException,
+	                                                                               SQLException {
 		final Field[] fields = classFields.get(entity.getClass());
 
 		int i = 1;
@@ -108,8 +107,6 @@ public class EntitySaver implements AutoCloseable, BatchSaver {
 				if (BigInteger.class.isAssignableFrom(field.getType())) {
 					value = BigInteger.class.cast(value).intValue();
 				}
-			} else if (requiredFields.containsKey(field)) {
-				value = DEFAULT_VALUES.get(field.getType());
 			}
 
 			preparedStatement.setObject(i++, value);
@@ -139,25 +136,5 @@ public class EntitySaver implements AutoCloseable, BatchSaver {
 		}
 
 		connection.setAutoCommit(defaultAutoCommit);
-	}
-
-	@Override
-	public void save(Collection<?> batch) throws Exception {
-		try {
-			for (Object obj : batch) {
-				addBatch(obj);
-			}
-			executeBatch();
-			connection.commit();
-			savedCount += batch.size();
-		} catch (SQLException e) {
-			connection.rollback();
-			throw e;
-		}
-	}
-
-	@Override
-	public int getSavedCount() {
-		return savedCount;
 	}
 }

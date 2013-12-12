@@ -37,7 +37,7 @@ CREATE TABLE OBJECT (
 	CURRSTATUS  NUMBER(10)     NOT NULL COMMENT 'Статус актуальности КЛАДР 4 (последние две цифры в коде)',
 	STARTDATE   DATE           NOT NULL COMMENT 'Начало действия записи',
 	ENDDATE     DATE           NOT NULL COMMENT 'Окончание действия записи',
-	NORMDOC     NVARCHAR(36)   NOT NULL COMMENT 'Внешний ключ на нормативный документ',
+	NORMDOC     NVARCHAR(36)            COMMENT 'Внешний ключ на нормативный документ',
 	LIVESTATUS  NUMBER(1)      NOT NULL COMMENT 'Признак действующего адресного объекта: 0 – недействующий адресный объект; 1 - действующий'
 );
 COMMENT ON TABLE OBJECT IS 'Состав элементов КЛАДЭ';
