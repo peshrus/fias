@@ -1,15 +1,15 @@
 package com.peshchuk.fias.downloader;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 
@@ -22,7 +22,9 @@ public class FiasRarSoapDownloaderTest {
 
 	@BeforeClass
 	public static void setUpOnce() {
-		final InputStream loggingCfgStreamStream = FiasRarSoapDownloaderTest.class.getResourceAsStream("/fias.logging.properties");
+		final InputStream loggingCfgStreamStream =
+				FiasRarSoapDownloaderTest.class.getResourceAsStream("/fias.logging.properties");
+
 		try {
 			LogManager.getLogManager().readConfiguration(loggingCfgStreamStream);
 		} catch (IOException e) {
