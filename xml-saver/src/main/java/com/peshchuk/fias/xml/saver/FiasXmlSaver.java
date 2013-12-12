@@ -45,7 +45,7 @@ public class FiasXmlSaver {
 		jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 	}
 
-	public void save() throws IOException, RarException, JAXBException, ClassNotFoundException {
+	public void save() throws Exception {
 		final Set<Class<?>> jaxbClasses = getJaxbClasses();
 		final Set<String> xmlRootElements = new HashSet<>();
 		final Map<String, Class<?>> entityClasses = new HashMap<>();
@@ -67,6 +67,7 @@ public class FiasXmlSaver {
 				final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 				final Collection<Object> batch = new ArrayList<>(batchSize);
 				FileHeader fileHeader;
+
 				while ((fileHeader = archive.nextFileHeader()) != null) {
 					if (!fileHeader.isEncrypted()) {
 						if (fileHeader.isFileHeader()) {
@@ -79,7 +80,7 @@ public class FiasXmlSaver {
 								} finally {
 									xmlStreamReader.close();
 								}
-							} catch (XMLStreamException e) {
+							} catch (Exception e) {
 								LOGGER.error(e.toString(), e);
 							}
 						} else {
@@ -101,12 +102,7 @@ public class FiasXmlSaver {
 		}
 	}
 
-	private void saveBatch(Collection<Object> batch) {
-		batchSaver.save(batch);
-		batch.clear();
-	}
-
-	private Set<Class<?>> getJaxbClasses() {
+	static Set<Class<?>> getJaxbClasses() {
 		final Reflections reflections = new Reflections(JAXB_CLASSES_PACKAGE);
 		final Set<Class<?>> result = reflections.getTypesAnnotatedWith(XmlRootElement.class);
 
@@ -116,7 +112,7 @@ public class FiasXmlSaver {
 	private void saveFile(Set<String> xmlRootElements,
 	                      Map<String, Class<?>> entityClasses,
 	                      XMLStreamReader xmlStreamReader,
-	                      Collection<Object> batch) throws XMLStreamException, JAXBException {
+	                      Collection<Object> batch) throws Exception {
 		do {
 			xmlStreamReader.nextTag();
 		} while (xmlRootElements.contains(xmlStreamReader.getLocalName()));
@@ -137,5 +133,10 @@ public class FiasXmlSaver {
 		final T result = jaxbElement.getValue();
 
 		return result;
+	}
+
+	private void saveBatch(Collection<Object> batch) throws Exception {
+		batchSaver.save(batch);
+		batch.clear();
 	}
 }

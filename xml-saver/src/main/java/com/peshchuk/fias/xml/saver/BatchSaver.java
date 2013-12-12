@@ -6,5 +6,6 @@ import java.util.Collection;
  * @author Ruslan Peshchuk (peshrus@gmail.com)
  */
 public interface BatchSaver {
-	void save(Collection<?> batch);
+	void save(Collection<?> batch) throws Exception;
+	int getSavedCount();
 }
