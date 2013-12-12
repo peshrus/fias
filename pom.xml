@@ -15,7 +15,6 @@
 
 	<modules>
 		<module>downloader</module>
-		<module>rar-extractor</module>
 		<module>xml-saver</module>
 	</modules>
 </project>
