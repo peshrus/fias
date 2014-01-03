@@ -26,34 +26,46 @@ import com.google.common.collect.Sets;
 /**
  * @author Ruslan Peshchuk (peshrus@gmail.com)
  */
-public class FiasXmlSaver {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FiasXmlSaver.class);
+public class FiasXmlProcessor {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FiasXmlProcessor.class);
+
+	private enum Mode {
+		SAVE, DELETE
+	}
 
 	private final File fiasRarFile;
 	private final Set<Class<?>> jaxbClasses;
 	private final int batchSize;
-	private final BatchSaver batchSaver;
+	private final BatchProcessor batchProcessor;
 	private final Unmarshaller jaxbUnmarshaller;
 
-	public FiasXmlSaver(File fiasRarFile, Set<Class<?>> jaxbClasses, int batchSize, BatchSaver batchSaver) throws
-	                                                                                                       JAXBException {
+	public FiasXmlProcessor(File fiasRarFile,
+	                        Set<Class<?>> jaxbClasses,
+	                        int batchSize,
+	                        BatchProcessor batchProcessor) throws JAXBException {
 		this.fiasRarFile = fiasRarFile;
 		this.jaxbClasses = jaxbClasses;
 		this.batchSize = batchSize;
-		this.batchSaver = batchSaver;
+		this.batchProcessor = batchProcessor;
 
 		final JAXBContext jaxbContext = JAXBContext.newInstance(Util.JAXB_CLASSES_PACKAGE);
 		jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 	}
 
-	public void save() throws Exception {
+	public void process(ConstraintsCreator constraintsCreator) throws Exception {
 		final Set<String> xmlRootElements = Sets.newHashSetWithExpectedSize(jaxbClasses.size());
 		final Map<String, Class<?>> entityClasses = Maps.newHashMapWithExpectedSize(jaxbClasses.size());
 
 		LOGGER.info("Analyze JAXB Classes");
 		analyzeJaxbClasses(xmlRootElements, entityClasses);
 
-		LOGGER.info("Start Saving: {}", fiasRarFile);
+		process(Mode.SAVE, xmlRootElements, entityClasses);
+		constraintsCreator.createConstraints();
+		process(Mode.DELETE, xmlRootElements, entityClasses);
+	}
+
+	private void process(Mode mode, Set<String> xmlRootElements, Map<String, Class<?>> entityClasses) throws Exception {
+		LOGGER.info("Start {}: {}", mode, fiasRarFile);
 		try {
 			final Archive archive = new Archive(fiasRarFile);
 
@@ -67,20 +79,23 @@ public class FiasXmlSaver {
 
 					if (!fileHeader.isEncrypted()) {
 						if (fileHeader.isFileHeader()) {
-							LOGGER.info("Start Reading: {}", fileName);
+							if ((!fileName.startsWith("AS_DEL_") && mode == Mode.SAVE) ||
+							    (fileName.startsWith("AS_DEL_") && mode == Mode.DELETE)) {
+								LOGGER.info("Start Reading: {}", fileName);
 
-							try (final InputStream inputStream = archive.getInputStream(fileHeader)) {
-								final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(inputStream);
+								try (final InputStream inputStream = archive.getInputStream(fileHeader)) {
+									final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(inputStream);
 
-								try {
-									saveFile(xmlRootElements, entityClasses, xmlStreamReader, batch);
+									try {
+										processFile(mode, xmlRootElements, entityClasses, xmlStreamReader, batch);
+									} finally {
+										xmlStreamReader.close();
+									}
+								} catch (Exception e) {
+									LOGGER.error("{} Error: {}", mode, fileName, e);
 								} finally {
-									xmlStreamReader.close();
+									LOGGER.info("Finish Reading: {}", fileName);
 								}
-							} catch (Exception e) {
-								LOGGER.error("Save Error: {}", fileName, e);
-							} finally {
-								LOGGER.info("Finish Reading: {}", fileName);
 							}
 						} else {
 							LOGGER.error("Not File: {}", fileName);
@@ -91,13 +106,13 @@ public class FiasXmlSaver {
 				}
 
 				if (batch.size() > 0) {
-					saveBatch(batch);
+					processBatch(mode, batch);
 				}
 			} else {
 				LOGGER.error("Archive is encrypted: {}", fiasRarFile);
 			}
 		} finally {
-			LOGGER.info("Finish Saving: {}", fiasRarFile);
+			LOGGER.info("Finish {}: {}", mode, fiasRarFile);
 		}
 	}
 
@@ -112,10 +127,11 @@ public class FiasXmlSaver {
 		}
 	}
 
-	private void saveFile(Set<String> xmlRootElements,
-	                      Map<String, Class<?>> entityClasses,
-	                      XMLStreamReader xmlStreamReader,
-	                      Collection<Object> batch) throws Exception {
+	private void processFile(Mode mode,
+	                         Set<String> xmlRootElements,
+	                         Map<String, Class<?>> entityClasses,
+	                         XMLStreamReader xmlStreamReader,
+	                         Collection<Object> batch) throws Exception {
 		do {
 			xmlStreamReader.nextTag();
 		} while (xmlRootElements.contains(xmlStreamReader.getLocalName()));
@@ -126,7 +142,7 @@ public class FiasXmlSaver {
 			batch.add(entity);
 
 			if (batch.size() == batchSize) {
-				saveBatch(batch);
+				processBatch(mode, batch);
 			}
 		} while (xmlStreamReader.isStartElement() && xmlStreamReader.hasNext());
 	}
@@ -138,8 +154,24 @@ public class FiasXmlSaver {
 		return result;
 	}
 
+	private void processBatch(Mode mode, Collection<Object> batch) throws Exception {
+		switch (mode) {
+			case SAVE:
+				saveBatch(batch);
+				break;
+			case DELETE:
+				deleteBatch(batch);
+				break;
+		}
+	}
+
 	private void saveBatch(Collection<?> batch) throws Exception {
-		batchSaver.save(batch);
+		batchProcessor.save(batch);
+		batch.clear();
+	}
+
+	private void deleteBatch(Collection<?> batch) throws Exception {
+		batchProcessor.delete(batch);
 		batch.clear();
 	}
 }

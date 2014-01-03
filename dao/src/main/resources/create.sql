@@ -195,6 +195,8 @@ CREATE TABLE REGION (
 	NAME        VARCHAR(120)  NOT NULL
 );
 
+-- Insert Data
+
 INSERT INTO REGION(CODE, NAME) VALUES('01', 'Республика Адыгея (Адыгея)');
 INSERT INTO REGION(CODE, NAME) VALUES('02', 'Республика Башкортостан');
 INSERT INTO REGION(CODE, NAME) VALUES('03', 'Республика Бурятия');

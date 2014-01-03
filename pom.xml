@@ -14,7 +14,9 @@
 	<url>http://fias-viewer.ru</url>
 
 	<modules>
+		<module>dao</module>
 		<module>downloader</module>
 		<module>xml-saver</module>
+		<module>ejb</module>
 	</modules>
 </project>
