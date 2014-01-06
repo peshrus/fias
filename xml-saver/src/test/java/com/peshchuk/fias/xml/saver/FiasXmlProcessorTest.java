@@ -59,39 +59,39 @@ public class FiasXmlProcessorTest {
 		savedCount = 0;
 		deletedCount = 0;
 		saver = new FiasXmlProcessor(new File(new URI(fiasRarUrl.toString()).getPath()),
-		                         jaxbClasses,
-		                         1000,
-		                         new BatchProcessor() {
-			                         @Override
-			                         public void save(Collection<?> batch) throws Exception {
-				                         try {
-					                         for (Object obj : batch) {
-						                         entitySaver.addBatch(obj);
-					                         }
-					                         entitySaver.executeBatch();
-					                         connection.commit();
-					                         savedCount += batch.size();
-				                         } catch (SQLException e) {
-					                         connection.rollback();
-					                         throw e;
-				                         }
-			                         }
+		                             jaxbClasses,
+		                             1000,
+		                             new BatchProcessor() {
+			                             @Override
+			                             public void save(Collection<?> batch) throws Exception {
+				                             try {
+					                             for (Object obj : batch) {
+						                             entitySaver.addBatch(obj);
+					                             }
+					                             entitySaver.executeBatch();
+					                             connection.commit();
+					                             savedCount += batch.size();
+				                             } catch (SQLException e) {
+					                             connection.rollback();
+					                             throw e;
+				                             }
+			                             }
 
-			                         @Override
-			                         public void delete(Collection<?> batch) throws Exception {
-				                         try {
-					                         for (Object obj : batch) {
-						                         entityDeleter.addBatch(obj);
-					                         }
-					                         entityDeleter.executeBatch();
-					                         connection.commit();
-					                         deletedCount += batch.size();
-				                         } catch (SQLException e) {
-					                         connection.rollback();
-					                         throw e;
-				                         }
-			                         }
-		                         });
+			                             @Override
+			                             public void delete(Collection<?> batch) throws Exception {
+				                             try {
+					                             for (Object obj : batch) {
+						                             entityDeleter.addBatch(obj);
+					                             }
+					                             entityDeleter.executeBatch();
+					                             connection.commit();
+					                             deletedCount += batch.size();
+				                             } catch (SQLException e) {
+					                             connection.rollback();
+					                             throw e;
+				                             }
+			                             }
+		                             });
 	}
 
 	@After
@@ -108,14 +108,22 @@ public class FiasXmlProcessorTest {
 	@Test
 	public void testSave_Ok() throws Exception {
 		final AtomicBoolean createConstraintsCalled = new AtomicBoolean(false);
-		saver.process(new ConstraintsCreator() {
-			@Override
-			public void createConstraints() throws IOException, SQLException {
-				createConstraintsCalled.set(true);
-			}
-		});
+		final AtomicBoolean finished = new AtomicBoolean(false);
+		saver.process(new ProcessingAssistant() {
+			              @Override
+			              public void createConstraints() throws IOException, SQLException {
+				              createConstraintsCalled.set(true);
+			              }
+
+			              @Override
+			              public void finish() {
+				              finished.set(true);
+			              }
+		              }
+		);
 		assertEquals(4210, savedCount);
 		assertEquals(982, deletedCount);
 		assertTrue(createConstraintsCalled.get());
+		assertTrue(finished.get());
 	}
 }

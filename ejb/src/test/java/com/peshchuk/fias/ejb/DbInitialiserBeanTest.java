@@ -28,7 +28,7 @@ public class DbInitialiserBeanTest {
 		p.setProperty("fiasDs", "new://Resource?type=DataSource");
 		p.setProperty("fiasDs.JdbcDriver", "org.h2.Driver");
 		p.setProperty("fiasDs.JdbcUrl",
-		              "jdbc:h2:~/DbInitialiserBeanTest;MODE=PostgreSQL;LOCK_TIMEOUT=20000;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE");
+		              "jdbc:h2:~/DbInitialiserBeanTest;MODE=PostgreSQL;MVCC=TRUE;LOCK_TIMEOUT=20000;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE");
 
 		// Create the container with our properties
 		container = EJBContainer.createEJBContainer(p);

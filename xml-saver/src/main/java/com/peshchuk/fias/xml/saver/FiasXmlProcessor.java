@@ -52,7 +52,7 @@ public class FiasXmlProcessor {
 		jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 	}
 
-	public void process(ConstraintsCreator constraintsCreator) throws Exception {
+	public void process(ProcessingAssistant processingAssistant) throws Exception {
 		final Set<String> xmlRootElements = Sets.newHashSetWithExpectedSize(jaxbClasses.size());
 		final Map<String, Class<?>> entityClasses = Maps.newHashMapWithExpectedSize(jaxbClasses.size());
 
@@ -60,8 +60,9 @@ public class FiasXmlProcessor {
 		analyzeJaxbClasses(xmlRootElements, entityClasses);
 
 		process(Mode.SAVE, xmlRootElements, entityClasses);
-		constraintsCreator.createConstraints();
+		processingAssistant.createConstraints();
 		process(Mode.DELETE, xmlRootElements, entityClasses);
+		processingAssistant.finish();
 	}
 
 	private void process(Mode mode, Set<String> xmlRootElements, Map<String, Class<?>> entityClasses) throws Exception {
@@ -71,7 +72,7 @@ public class FiasXmlProcessor {
 
 			if (!archive.isEncrypted()) {
 				final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-				final Collection<Object> batch = new ArrayList<>(batchSize);
+				Collection<Object> batch = new ArrayList<>(batchSize);
 				FileHeader fileHeader;
 
 				while ((fileHeader = archive.nextFileHeader()) != null) {
@@ -87,7 +88,7 @@ public class FiasXmlProcessor {
 									final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(inputStream);
 
 									try {
-										processFile(mode, xmlRootElements, entityClasses, xmlStreamReader, batch);
+										batch = processFile(mode, xmlRootElements, entityClasses, xmlStreamReader, batch);
 									} finally {
 										xmlStreamReader.close();
 									}
@@ -127,11 +128,11 @@ public class FiasXmlProcessor {
 		}
 	}
 
-	private void processFile(Mode mode,
-	                         Set<String> xmlRootElements,
-	                         Map<String, Class<?>> entityClasses,
-	                         XMLStreamReader xmlStreamReader,
-	                         Collection<Object> batch) throws Exception {
+	private Collection<Object> processFile(Mode mode,
+	                                       Set<String> xmlRootElements,
+	                                       Map<String, Class<?>> entityClasses,
+	                                       XMLStreamReader xmlStreamReader,
+	                                       Collection<Object> batch) throws Exception {
 		do {
 			xmlStreamReader.nextTag();
 		} while (xmlRootElements.contains(xmlStreamReader.getLocalName()));
@@ -142,9 +143,11 @@ public class FiasXmlProcessor {
 			batch.add(entity);
 
 			if (batch.size() == batchSize) {
-				processBatch(mode, batch);
+				batch = processBatch(mode, batch);
 			}
 		} while (xmlStreamReader.isStartElement() && xmlStreamReader.hasNext());
+
+		return batch;
 	}
 
 	private <T> T extractEntity(XMLStreamReader xmlStreamReader, Class<T> entityClass) throws JAXBException {
@@ -154,24 +157,16 @@ public class FiasXmlProcessor {
 		return result;
 	}
 
-	private void processBatch(Mode mode, Collection<Object> batch) throws Exception {
+	private Collection<Object> processBatch(Mode mode, Collection<Object> batch) throws Exception {
 		switch (mode) {
 			case SAVE:
-				saveBatch(batch);
+				batchProcessor.save(batch);
 				break;
 			case DELETE:
-				deleteBatch(batch);
+				batchProcessor.delete(batch);
 				break;
 		}
-	}
 
-	private void saveBatch(Collection<?> batch) throws Exception {
-		batchProcessor.save(batch);
-		batch.clear();
-	}
-
-	private void deleteBatch(Collection<?> batch) throws Exception {
-		batchProcessor.delete(batch);
-		batch.clear();
+		return new ArrayList<>(batchSize);
 	}
 }

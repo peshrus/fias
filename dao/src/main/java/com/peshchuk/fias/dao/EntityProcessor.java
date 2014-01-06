@@ -68,6 +68,14 @@ public abstract class EntityProcessor implements AutoCloseable {
 		}
 	}
 
+	public void commit() throws SQLException {
+		connection.commit();
+	}
+
+	public void rollback() throws SQLException {
+		connection.rollback();
+	}
+
 	@Override
 	public void close() throws SQLException {
 		for (PreparedStatement preparedStatement : preparedStatements.values()) {

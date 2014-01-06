@@ -24,8 +24,8 @@ import com.peshchuk.fias.dao.EntitySaver;
 import com.peshchuk.fias.dao.SchemaCreator;
 import com.peshchuk.fias.downloader.FiasRarSoapDownloader;
 import com.peshchuk.fias.xml.saver.BatchProcessor;
-import com.peshchuk.fias.xml.saver.ConstraintsCreator;
 import com.peshchuk.fias.xml.saver.FiasXmlProcessor;
+import com.peshchuk.fias.xml.saver.ProcessingAssistant;
 import com.peshchuk.fias.xml.saver.Util;
 
 /**
@@ -69,9 +69,9 @@ public class DbInitialiserBean {
 												                     entitySaver.addBatch(obj);
 											                     }
 											                     entitySaver.executeBatch();
-											                     connection.commit();
+											                     entitySaver.commit();
 										                     } catch (SQLException e) {
-											                     connection.rollback();
+											                     entitySaver.rollback();
 											                     throw e;
 										                     }
 									                     }
@@ -83,19 +83,25 @@ public class DbInitialiserBean {
 												                     entityDeleter.addBatch(obj);
 											                     }
 											                     entityDeleter.executeBatch();
-											                     connection.commit();
+											                     entityDeleter.commit();
 										                     } catch (SQLException e) {
-											                     connection.rollback();
+											                     entityDeleter.rollback();
 											                     throw e;
 										                     }
 									                     }
 								                     });
 						final ConstraintsInitiator constraintsInitiator = new ConstraintsInitiator(connection);
 
-						saver.process(new ConstraintsCreator() {
+						saver.process(new ProcessingAssistant() {
 							@Override
 							public void createConstraints() throws Exception {
+								LOGGER.info("Add Constraints");
 								constraintsInitiator.addConstraints();
+							}
+
+							@Override
+							public void finish() {
+								LOGGER.info("Finish Processing");
 							}
 						});
 					}
