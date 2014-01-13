@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Ruslan Peshchuk(peshrus@gmail.com)
  */
-//@Ignore
+@Ignore
 public class DbInitialiserBeanTest {
 	private static EJBContainer container;
 
