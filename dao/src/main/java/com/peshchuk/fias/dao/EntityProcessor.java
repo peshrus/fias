@@ -1,6 +1,7 @@
 package com.peshchuk.fias.dao;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Map;
@@ -20,11 +21,14 @@ public abstract class EntityProcessor implements AutoCloseable {
 	private final Connection connection;
 	private final boolean supportsBatchUpdates;
 	private final Map<Class<?>, PreparedStatement> preparedStatements;
+	private final boolean storesLowerCaseIdentifiers;
 
 	public EntityProcessor(Connection connection, Set<Class<?>> jaxbClasses) throws SQLException {
+		final DatabaseMetaData metaData = connection.getMetaData();
 		this.connection = connection;
-
-		this.supportsBatchUpdates = connection.getMetaData().supportsBatchUpdates();
+		this.storesLowerCaseIdentifiers = metaData.storesLowerCaseIdentifiers();
+		LOGGER.info("storesLowerCaseIdentifiers: {}", storesLowerCaseIdentifiers);
+		this.supportsBatchUpdates = metaData.supportsBatchUpdates();
 		LOGGER.info("supportsBatchUpdates: {}", supportsBatchUpdates);
 
 		final int jaxbClassesSize = jaxbClasses.size();
@@ -37,6 +41,18 @@ public abstract class EntityProcessor implements AutoCloseable {
 
 	protected Map<Class<?>, PreparedStatement> getPreparedStatements() {
 		return preparedStatements;
+	}
+
+	protected String transformIdentifier(String identifier) {
+		String result;
+
+		if (storesLowerCaseIdentifiers) {
+			result = identifier.toLowerCase();
+		} else {
+			result = identifier.toUpperCase();
+		}
+
+		return result;
 	}
 
 	public void addBatch(Object entity) throws SQLException, IllegalAccessException {

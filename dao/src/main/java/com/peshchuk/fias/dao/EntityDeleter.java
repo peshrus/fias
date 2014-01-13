@@ -73,9 +73,9 @@ public class EntityDeleter extends EntityProcessor {
 
 			if (idField != null) {
 				final XmlAttribute xmlAttribute = idField.getAnnotation(XmlAttribute.class);
-				final String sqlField = xmlAttribute.name();
+				final String sqlField = transformIdentifier(xmlAttribute.name());
 
-				final String sql = "DELETE FROM " + entityClass.getSimpleName().toUpperCase() + " WHERE " + sqlField + " = ?";
+				final String sql = "DELETE FROM " + transformIdentifier(entityClass.getSimpleName()) + " WHERE " + sqlField + " = ?";
 				LOGGER.info("{} Delete SQL: {}", entityClass.getSimpleName(), sql);
 				getPreparedStatements().put(entityClass, getConnection().prepareStatement(sql));
 			} else {

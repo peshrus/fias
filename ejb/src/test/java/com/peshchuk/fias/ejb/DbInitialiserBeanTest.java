@@ -11,11 +11,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Ruslan Peshchuk(peshrus@gmail.com)
  */
-@Ignore
+//@Ignore
 public class DbInitialiserBeanTest {
 	private static EJBContainer container;
 
@@ -26,9 +27,14 @@ public class DbInitialiserBeanTest {
 
 		// A default test datasource
 		p.setProperty("fiasDs", "new://Resource?type=DataSource");
-		p.setProperty("fiasDs.JdbcDriver", "org.h2.Driver");
-		p.setProperty("fiasDs.JdbcUrl",
-		              "jdbc:h2:~/DbInitialiserBeanTest;MODE=PostgreSQL;MVCC=TRUE;LOCK_TIMEOUT=20000;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE");
+		p.setProperty("fiasDs.JdbcDriver", "org.postgresql.Driver");
+		p.setProperty("fiasDs.JdbcUrl", "jdbc:postgresql://localhost:5432/fias");
+		p.setProperty("fiasDs.UserName", "fias");
+		p.setProperty("fiasDs.Password", "fias");
+
+//		p.setProperty("fiasDs.JdbcDriver", "org.h2.Driver");
+//		p.setProperty("fiasDs.JdbcUrl",
+//		              "jdbc:h2:~/DbInitialiserBeanTest;MODE=PostgreSQL;MVCC=TRUE;LOCK_TIMEOUT=20000;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE");
 
 		// Create the container with our properties
 		container = EJBContainer.createEJBContainer(p);

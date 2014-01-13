@@ -27,7 +27,8 @@ public class SchemaCreator {
 	}
 
 	private boolean doesFiasSchemaExist(DatabaseMetaData metaData) throws SQLException {
-		try (final ResultSet tables = metaData.getTables("", "", "OBJECT", null)) {
+		try (final ResultSet tables =
+				     metaData.getTables("", "", metaData.storesLowerCaseIdentifiers() ? "object" : "OBJECT", null)) {
 			return tables.next();
 		}
 	}

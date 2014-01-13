@@ -1,10 +1,13 @@
 package com.peshchuk.fias.ejb;
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Set;
+import com.peshchuk.fias.dao.*;
+import com.peshchuk.fias.downloader.FiasRarSoapDownloader;
+import com.peshchuk.fias.xml.saver.BatchProcessor;
+import com.peshchuk.fias.xml.saver.FiasXmlProcessor;
+import com.peshchuk.fias.xml.saver.ProcessingAssistant;
+import com.peshchuk.fias.xml.saver.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -13,20 +16,12 @@ import javax.ejb.Startup;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.peshchuk.fias.dao.ConstraintsInitiator;
-import com.peshchuk.fias.dao.EntityDeleter;
-import com.peshchuk.fias.dao.EntityProcessor;
-import com.peshchuk.fias.dao.EntitySaver;
-import com.peshchuk.fias.dao.SchemaCreator;
-import com.peshchuk.fias.downloader.FiasRarSoapDownloader;
-import com.peshchuk.fias.xml.saver.BatchProcessor;
-import com.peshchuk.fias.xml.saver.FiasXmlProcessor;
-import com.peshchuk.fias.xml.saver.ProcessingAssistant;
-import com.peshchuk.fias.xml.saver.Util;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Ruslan Peshchuk(peshrus@gmail.com)
@@ -42,18 +37,20 @@ public class DbInitialiserBean {
 
 	@PostConstruct
 	public void init() throws Exception {
-		try (final Connection connection = fiasDs.getConnection()) {
-			final boolean autoCommit = connection.getAutoCommit();
+		boolean schemaCreated = createSchema();
 
-			try {
-				final SchemaCreator schemaCreator = new SchemaCreator();
-				final boolean schemaCreated = schemaCreator.createSchema(connection);
+		if (schemaCreated) {
+//			final File fiasRarFile = new File("C:\\Users\\rupe0413\\AppData\\Local\\Temp\\fias_xml_8157665194657647373.rar");
+			final File fiasRarFile = File.createTempFile("fias_xml_", ".rar");
+			final FiasRarSoapDownloader downloader = new FiasRarSoapDownloader(fiasRarFile, false);
+			downloader.download();
+			final Set<Class<?>> jaxbClasses = Util.getJaxbClasses();
 
-				if (schemaCreated) {
-					final File fiasRarFile = File.createTempFile("fias_xml_", ".rar");
-					final FiasRarSoapDownloader downloader = new FiasRarSoapDownloader(fiasRarFile, false);
-					downloader.download();
-					final Set<Class<?>> jaxbClasses = Util.getJaxbClasses();
+			try (final Connection connection = fiasDs.getConnection()) {
+				final boolean autoCommit = connection.getAutoCommit();
+
+				try {
+					connection.setAutoCommit(false);
 
 					try (final EntityProcessor entitySaver = new EntitySaver(connection, jaxbClasses);
 					     final EntityProcessor entityDeleter = new EntityDeleter(connection, jaxbClasses)) {
@@ -105,12 +102,37 @@ public class DbInitialiserBean {
 							}
 						});
 					}
-				} else {
-					LOGGER.info("FIAS DB Schema already exists");
+
+				} finally {
+					connection.setAutoCommit(autoCommit);
 				}
+			} catch (SQLException e) {
+				for (Throwable ex : e) {
+					LOGGER.error(ex.getLocalizedMessage());
+				}
+
+				throw e;
+			}
+		} else {
+			LOGGER.info("FIAS DB Schema already exists");
+		}
+	}
+
+	private boolean createSchema() throws SQLException, IOException {
+		boolean schemaCreated = false;
+
+		try (final Connection connection = fiasDs.getConnection()) {
+			final boolean autoCommit = connection.getAutoCommit();
+
+			try {
+				connection.setAutoCommit(false);
+				final SchemaCreator schemaCreator = new SchemaCreator();
+				schemaCreated = schemaCreator.createSchema(connection);
 			} finally {
 				connection.setAutoCommit(autoCommit);
 			}
 		}
+
+		return schemaCreated;
 	}
 }

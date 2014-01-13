@@ -3,6 +3,7 @@ package com.peshchuk.fias.dao;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -51,14 +52,14 @@ public class EntitySaver extends EntityProcessor {
 				entityField.setAccessible(true);
 
 				final XmlAttribute xmlAttribute = entityField.getAnnotation(XmlAttribute.class);
-				fieldNames[pos] = xmlAttribute.name();
+				fieldNames[pos] = transformIdentifier(xmlAttribute.name());
 				queryParams[pos] = "?";
 				++pos;
 			}
 			final String sqlFields = Arrays.toString(fieldNames).replace('[', '(').replace(']', ')');
 			final String sqlParams = Arrays.toString(queryParams).replace('[', '(').replace(']', ')');
 
-			final String sql = "INSERT INTO " + entityClass.getSimpleName().toUpperCase() + sqlFields + " VALUES" + sqlParams;
+			final String sql = "INSERT INTO " + transformIdentifier(entityClass.getSimpleName()) + sqlFields + " VALUES" + sqlParams;
 			LOGGER.info("{} Save SQL: {}", entityClass.getSimpleName(), sql);
 			getPreparedStatements().put(entityClass, getConnection().prepareStatement(sql));
 		}
@@ -67,25 +68,31 @@ public class EntitySaver extends EntityProcessor {
 	}
 
 	protected void setParameters(PreparedStatement preparedStatement, Object entity) throws
-	                                                                                 IllegalAccessException,
-	                                                                                 SQLException {
+			IllegalAccessException,
+			SQLException {
 		final Field[] fields = classFields.get(entity.getClass());
 
 		int paramIndex = 1;
 		for (Field field : fields) {
 			Object value = field.get(entity);
+			boolean paramNotSet = true;
 
 			if (value != null) {
 				if (XMLGregorianCalendar.class.isAssignableFrom(field.getType())) {
-					value = XMLGregorianCalendar.class.cast(value).toGregorianCalendar().getTime();
-				}
-
-				if (BigInteger.class.isAssignableFrom(field.getType())) {
-					value = BigInteger.class.cast(value).intValue();
+					final Date dateValue =
+							new Date(XMLGregorianCalendar.class.cast(value).toGregorianCalendar().getTime().getTime());
+					preparedStatement.setDate(paramIndex++, dateValue);
+					paramNotSet = false;
+				} else if (BigInteger.class.isAssignableFrom(field.getType())) {
+					final int intValue = BigInteger.class.cast(value).intValue();
+					preparedStatement.setInt(paramIndex++, intValue);
+					paramNotSet = false;
 				}
 			}
 
-			preparedStatement.setObject(paramIndex++, value);
+			if (paramNotSet) {
+				preparedStatement.setObject(paramIndex++, value);
+			}
 		}
 	}
 }
