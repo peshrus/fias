@@ -28,8 +28,10 @@ public class FiasRarSoapDownloaderTest {
 		try {
 			LogManager.getLogManager().readConfiguration(loggingCfgStreamStream);
 		} catch (IOException e) {
-			Logger.getAnonymousLogger().severe("Could not load fias.logging.properties file");
-			Logger.getAnonymousLogger().severe(e.getMessage());
+			final Logger anonymousLogger = Logger.getAnonymousLogger();
+
+			anonymousLogger.severe("Could not load fias.logging.properties file");
+			anonymousLogger.severe(e.getMessage());
 		}
 	}
 

@@ -1,6 +1,10 @@
 package com.peshchuk.fias.ejb;
 
-import com.peshchuk.fias.dao.*;
+import com.peshchuk.fias.dao.ConstraintsInitiator;
+import com.peshchuk.fias.dao.EntityDeleter;
+import com.peshchuk.fias.dao.EntityProcessor;
+import com.peshchuk.fias.dao.EntitySaver;
+import com.peshchuk.fias.dao.SchemaCreator;
 import com.peshchuk.fias.downloader.FiasRarSoapDownloader;
 import com.peshchuk.fias.xml.saver.BatchProcessor;
 import com.peshchuk.fias.xml.saver.FiasXmlProcessor;
@@ -32,9 +36,11 @@ import java.util.Set;
 public class DbInitialiserBean {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbInitialiserBean.class);
 
+	@SuppressWarnings("unused")
 	@Resource
 	private DataSource fiasDs;
 
+	@SuppressWarnings("unused")
 	@PostConstruct
 	public void init() throws Exception {
 		boolean schemaCreated = createSchema();
@@ -87,13 +93,12 @@ public class DbInitialiserBean {
 										                     }
 									                     }
 								                     });
-						final ConstraintsInitiator constraintsInitiator = new ConstraintsInitiator(connection);
 
 						saver.process(new ProcessingAssistant() {
 							@Override
 							public void createConstraints() throws Exception {
 								LOGGER.info("Add Constraints");
-								constraintsInitiator.addConstraints();
+								ConstraintsInitiator.addConstraints(connection);
 							}
 
 							@Override
@@ -126,8 +131,7 @@ public class DbInitialiserBean {
 
 			try {
 				connection.setAutoCommit(false);
-				final SchemaCreator schemaCreator = new SchemaCreator();
-				schemaCreated = schemaCreator.createSchema(connection);
+				schemaCreated = SchemaCreator.createSchema(connection);
 			} finally {
 				connection.setAutoCommit(autoCommit);
 			}

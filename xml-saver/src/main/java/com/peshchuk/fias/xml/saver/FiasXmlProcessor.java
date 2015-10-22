@@ -61,7 +61,7 @@ public class FiasXmlProcessor {
 
 		process(Mode.SAVE, xmlRootElements, entityClasses);
 		processingAssistant.createConstraints();
-		process(Mode.DELETE, xmlRootElements, entityClasses);
+		process(Mode.DELETE, xmlRootElements, entityClasses); // update archives contain not only new objects but also objects to be deleted
 		processingAssistant.finish();
 	}
 

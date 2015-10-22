@@ -11,7 +11,7 @@ import java.sql.SQLException;
  * @author Ruslan Peshchuk(peshrus@gmail.com)
  */
 public class SchemaCreator {
-	public boolean createSchema(Connection connection) throws SQLException, IOException {
+	public static boolean createSchema(Connection connection) throws SQLException, IOException {
 		boolean result = false;
 		final boolean fiasSchemaExists = doesFiasSchemaExist(connection.getMetaData());
 
@@ -26,7 +26,7 @@ public class SchemaCreator {
 		return result;
 	}
 
-	private boolean doesFiasSchemaExist(DatabaseMetaData metaData) throws SQLException {
+	private static boolean doesFiasSchemaExist(DatabaseMetaData metaData) throws SQLException {
 		try (final ResultSet tables =
 				     metaData.getTables("", "", metaData.storesLowerCaseIdentifiers() ? "object" : "OBJECT", null)) {
 			return tables.next();

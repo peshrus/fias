@@ -50,8 +50,7 @@ public class FiasXmlProcessorTest {
 		autoCommit = connection.getAutoCommit();
 		connection.setAutoCommit(false);
 
-		final SchemaCreator schemaCreator = new SchemaCreator();
-		assertTrue(schemaCreator.createSchema(connection));
+		assertTrue(SchemaCreator.createSchema(connection));
 
 		final Set<Class<?>> jaxbClasses = Util.getJaxbClasses();
 		entitySaver = new EntitySaver(connection, jaxbClasses);

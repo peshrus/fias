@@ -15,21 +15,21 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<version.java>1.7</version.java>
+		<version.java>1.8</version.java>
 		<version.ejb>3.2</version.ejb>
 
 		<version.junrar>0.6</version.junrar>
-		<version.reflections>0.9.9-RC1</version.reflections>
-		<version.guava>13.0.1</version.guava> <!-- TODO: return version 15.0 (https://code.google.com/p/guava-libraries/issues/detail?id=1433) -->
-		<version.h2>1.3.174</version.h2>
+		<version.reflections>0.9.10</version.reflections>
+		<version.guava>19.0-rc2</version.guava> <!-- TODO: return version 15.0 (https://code.google.com/p/guava-libraries/issues/detail?id=1433) -->
+		<version.h2>1.4.190</version.h2>
 
-		<version.slf4j>1.7.5</version.slf4j>
-		<version.junit>4.11</version.junit>
+		<version.slf4j>1.7.12</version.slf4j>
+		<version.junit>4.12</version.junit>
 
-		<version.plugin.compiler>3.1</version.plugin.compiler>
+		<version.plugin.compiler>3.3</version.plugin.compiler>
 		<version.plugin.jaxws>2.3</version.plugin.jaxws>
-		<version.plugin.jaxb2>1.5</version.plugin.jaxb2>
-		<version.plugin.ejb>2.3</version.plugin.ejb>
+		<version.plugin.jaxb2>2.2</version.plugin.jaxb2>
+		<version.plugin.ejb>2.5.1</version.plugin.ejb>
 	</properties>
 
 	<dependencyManagement>

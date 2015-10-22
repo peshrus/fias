@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -15,13 +14,6 @@ import static org.junit.Assert.assertTrue;
  * @author Ruslan Peshchuk(peshrus@gmail.com)
  */
 public class SchemaCreatorTest {
-	private SchemaCreator schemaCreator;
-
-	@Before
-	public void setUp() {
-		schemaCreator = new SchemaCreator();
-	}
-
 	@Test
 	public void testCreateSchema_OK() throws SQLException, IOException {
 		try (final Connection connection =
@@ -30,8 +22,8 @@ public class SchemaCreatorTest {
 			try {
 				connection.setAutoCommit(false);
 
-				assertTrue(schemaCreator.createSchema(connection));
-				assertFalse(schemaCreator.createSchema(connection));
+				assertTrue(SchemaCreator.createSchema(connection));
+				assertFalse(SchemaCreator.createSchema(connection));
 			} finally {
 				connection.setAutoCommit(autoCommit);
 			}

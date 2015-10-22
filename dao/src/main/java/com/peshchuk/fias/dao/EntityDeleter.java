@@ -47,6 +47,8 @@ public class EntityDeleter extends EntityProcessor {
 					case "NormativeDocument": // AS_DEL_NORMDOC
 						rememberIdField(entityClass, "normdocid");
 						break;
+					default:
+						LOGGER.info("Entity cannot be deleted: {}", entityClass.getName());
 				}
 			}
 		}
@@ -73,9 +75,9 @@ public class EntityDeleter extends EntityProcessor {
 
 			if (idField != null) {
 				final XmlAttribute xmlAttribute = idField.getAnnotation(XmlAttribute.class);
-				final String sqlField = transformIdentifier(xmlAttribute.name());
+				final String sqlIdField = transformIdentifier(xmlAttribute.name());
 
-				final String sql = "DELETE FROM " + transformIdentifier(entityClass.getSimpleName()) + " WHERE " + sqlField + " = ?";
+				final String sql = "DELETE FROM " + transformIdentifier(entityClass.getSimpleName()) + " WHERE " + sqlIdField + " = ?";
 				LOGGER.info("{} Delete SQL: {}", entityClass.getSimpleName(), sql);
 				getPreparedStatements().put(entityClass, getConnection().prepareStatement(sql));
 			} else {

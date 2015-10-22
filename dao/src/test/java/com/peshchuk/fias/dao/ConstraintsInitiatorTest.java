@@ -16,19 +16,16 @@ import static org.junit.Assert.assertTrue;
 public class ConstraintsInitiatorTest {
 	@Test
 	public void testAddConstraints_OK() throws SQLException, IOException {
-		final SchemaCreator schemaCreator = new SchemaCreator();
-
 		try (final Connection connection =
 				     DriverManager.getConnection(
 						     "jdbc:h2:mem:ConstraintsInitiatorTest;MODE=PostgreSQL;LOCK_TIMEOUT=20000;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE")) {
 			final boolean autoCommit = connection.getAutoCommit();
 			try {
 				connection.setAutoCommit(false);
-				schemaCreator.createSchema(connection);
+				SchemaCreator.createSchema(connection);
 
-				final ConstraintsInitiator constraintsInitiator = new ConstraintsInitiator(connection);
-				assertTrue(constraintsInitiator.addConstraints());
-				assertFalse(constraintsInitiator.addConstraints());
+				assertTrue(ConstraintsInitiator.addConstraints(connection));
+				assertFalse(ConstraintsInitiator.addConstraints(connection));
 			} finally {
 				connection.setAutoCommit(autoCommit);
 			}

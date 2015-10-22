@@ -11,13 +11,7 @@ import java.sql.SQLException;
  * @author Ruslan Peshchuk(peshrus@gmail.com)
  */
 public class ConstraintsInitiator {
-	private final Connection connection;
-
-	public ConstraintsInitiator(Connection connection) {
-		this.connection = connection;
-	}
-
-	public boolean addConstraints() throws IOException, SQLException {
+	public static boolean addConstraints(Connection connection) throws IOException, SQLException {
 		boolean result = false;
 		final boolean fiasConstraintsExist = doesFiasConstraintsExist(connection.getMetaData());
 
@@ -32,7 +26,7 @@ public class ConstraintsInitiator {
 		return result;
 	}
 
-	private boolean doesFiasConstraintsExist(DatabaseMetaData metaData) throws SQLException {
+	private static boolean doesFiasConstraintsExist(DatabaseMetaData metaData) throws SQLException {
 		try (final ResultSet tables =
 				     metaData.getPrimaryKeys("", "", metaData.storesLowerCaseIdentifiers() ? "object" : "OBJECT")) {
 			return tables.next();
