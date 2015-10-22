@@ -20,7 +20,7 @@
 
 		<version.junrar>0.6</version.junrar>
 		<version.reflections>0.9.10</version.reflections>
-		<version.guava>19.0-rc2</version.guava> <!-- TODO: return version 15.0 (https://code.google.com/p/guava-libraries/issues/detail?id=1433) -->
+		<version.guava>19.0-rc2</version.guava>
 		<version.h2>1.4.190</version.h2>
 
 		<version.slf4j>1.7.12</version.slf4j>
