@@ -67,9 +67,7 @@ public class FiasXmlProcessor {
 
 	private void process(Mode mode, Set<String> xmlRootElements, Map<String, Class<?>> entityClasses) throws Exception {
 		LOGGER.info("Start {}: {}", mode, fiasRarFile);
-		try {
-			final Archive archive = new Archive(fiasRarFile);
-
+		try (final Archive archive = new Archive(fiasRarFile)) {
 			if (!archive.isEncrypted()) {
 				final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 				Collection<Object> batch = new ArrayList<>(batchSize);
@@ -92,7 +90,7 @@ public class FiasXmlProcessor {
 									} finally {
 										xmlStreamReader.close();
 									}
-								} catch (Exception e) {
+								} catch (Throwable e) {
 									LOGGER.error("{} Error: {}", mode, fileName, e);
 								} finally {
 									LOGGER.info("Finish Reading: {}", fileName);
@@ -139,11 +137,15 @@ public class FiasXmlProcessor {
 
 		do {
 			final Class<?> entityClass = entityClasses.get(xmlStreamReader.getLocalName());
-			final Object entity = extractEntity(xmlStreamReader, entityClass);
-			batch.add(entity);
+			try {
+				final Object entity = extractEntity(xmlStreamReader, entityClass);
+				batch.add(entity);
 
-			if (batch.size() == batchSize) {
-				batch = processBatch(mode, batch);
+				if (batch.size() == batchSize) {
+					batch = processBatch(mode, batch);
+				}
+			} catch (Throwable e) {
+				LOGGER.error("{} Error", mode, e);
 			}
 		} while (xmlStreamReader.isStartElement() && xmlStreamReader.hasNext());
 

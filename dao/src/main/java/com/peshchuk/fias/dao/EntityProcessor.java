@@ -77,6 +77,10 @@ public abstract class EntityProcessor implements AutoCloseable {
 			for (PreparedStatement preparedStatement : preparedStatements.values()) {
 				try {
 					preparedStatement.executeBatch();
+				} catch (SQLException sqlEx) {
+					for (Throwable ex : sqlEx) {
+						LOGGER.error(ex.toString(), ex);
+					}
 				} catch (Throwable throwable) {
 					LOGGER.error(throwable.toString(), throwable);
 				}

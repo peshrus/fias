@@ -28,7 +28,7 @@ public class DbInitialiserBeanTest {
 		// A default test datasource
 		p.setProperty("fiasDs", "new://Resource?type=DataSource");
 		p.setProperty("fiasDs.JdbcDriver", "org.postgresql.Driver");
-		p.setProperty("fiasDs.JdbcUrl", "jdbc:postgresql://localhost:5432/fias");
+		p.setProperty("fiasDs.JdbcUrl", "jdbc:postgresql://localhost:5432/fias?prepareThreshold=0");
 		p.setProperty("fiasDs.UserName", "fias");
 		p.setProperty("fiasDs.Password", "fias");
 

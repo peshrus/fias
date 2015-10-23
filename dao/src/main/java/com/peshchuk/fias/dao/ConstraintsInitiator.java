@@ -28,7 +28,7 @@ public class ConstraintsInitiator {
 
 	private static boolean doesFiasConstraintsExist(DatabaseMetaData metaData) throws SQLException {
 		try (final ResultSet tables =
-				     metaData.getPrimaryKeys("", "", metaData.storesLowerCaseIdentifiers() ? "object" : "OBJECT")) {
+				     metaData.getImportedKeys("", "", metaData.storesLowerCaseIdentifiers() ? "object" : "OBJECT")) {
 			return tables.next();
 		}
 	}

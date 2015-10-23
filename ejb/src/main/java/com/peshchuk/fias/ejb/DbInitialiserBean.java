@@ -46,7 +46,7 @@ public class DbInitialiserBean {
 		boolean schemaCreated = createSchema();
 
 		if (schemaCreated) {
-//			final File fiasRarFile = new File("C:\\Users\\rupe0413\\AppData\\Local\\Temp\\fias_xml_8157665194657647373.rar");
+//			final File fiasRarFile = new File("C:\\Users\\rupe0413\\AppData\\Local\\Temp\\fias_xml_1960655428330468346.rar");
 			final File fiasRarFile = File.createTempFile("fias_xml_", ".rar");
 			final FiasRarSoapDownloader downloader = new FiasRarSoapDownloader(fiasRarFile, false);
 			downloader.download();
